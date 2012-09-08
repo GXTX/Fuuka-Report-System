@@ -127,7 +127,7 @@ else if(!empty($_POST)){
 				die("There's no post matching that ID.");
 			}
 			else{
-				$db->query("INSERT INTO `user_reports` (`board_id`, `post_id`, `category`, `report_time`, `ipv4`, `action`) VALUES ('".$_POST['board']."', '".$_POST['postid']."', '".$_POST['cat']."', '".time()."', '".$_SERVER['REMOTE_ADDR'];."', 'new')") or die (mysql_error());
+				$db->query("INSERT INTO `user_reports` (`board_id`, `post_id`, `category`, `report_time`, `ipv4`, `action`) VALUES ('".$_POST['board']."', '".$_POST['postid']."', '".$_POST['cat']."', '".time()."', '".$_SERVER['REMOTE_ADDR']."', 'new')");
 				$db->close();
 				echo '
 					<!DOCTYPE html>
