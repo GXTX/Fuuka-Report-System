@@ -16,6 +16,15 @@ CREATE TABLE IF NOT EXISTS `user_reports` (
   KEY `post_id` (`post_id`),
   KEY `report_time` (`report_time`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=0 ;
+
+CREATE TABLE IF NOT EXISTS `user_reports_ban` (
+  `ban_id` int(11) NOT NULL AUTO_INCREMENT,
+  `ipv4` text NOT NULL,
+  `start_date` int(11) NOT NULL,
+  `end_date` int(11) NOT NULL,
+  `banning_mod` int(11) NOT NULL,
+  PRIMARY KEY (`ban_id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=0 ;
 ```
 
 JS:
