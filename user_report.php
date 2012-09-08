@@ -33,7 +33,7 @@ $publickey  = "6LeSbscSAAAAAFaSWi-qZMMc05v18G0911KG6byq";
 $boards = array("g", "sci", "diy");
 $cats = array("illegal", "spam");
 
-function can_i_report($ip){
+function canIReport($ip){
 	global $db;
 	$query = $db->query("SELECT `end_date` FROM `user_reports_ban` WHERE `ipv4` ='".$ip."' AND `end_date` >'".time()."' LIMIT 0,1");
 	$amIBanned = $query->fetch_assoc();
@@ -112,7 +112,7 @@ else if(!empty($_POST)){
 	if($db->connect_errno)
 		die("Cannot connect to MySQL");
 
-	if(can_i_report($_SERVER['REMOTE_ADDR']))
+	if(canIReport($_SERVER['REMOTE_ADDR']))
 		die("You aren't allowed to report posts. DIE IN A FIRE.");
 
 
