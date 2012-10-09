@@ -1,41 +1,13 @@
 <?php
-/*  Fuuka Report System
- *  ------------------------------------------
- *  Author: wutno (#/g/tv - Rizon)
- *
- *
- *  GNU License Agreement
- *  ---------------------
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License version 2 as
- *  published by the Free Software Foundation.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
- *
- *  http://www.gnu.org/licenses/gpl-2.0.txt
- */
-
-if(!isset($_SERVER['HTTPS']))
+if(!isset($_SERVER['HTTPS']) && KU_RSECURE)
 	die("Secure reporting only!");
 
-require_once('libs/recaptchalib.php');
-require_once("config/sql_conf.php");
-
-$privatekey = "6LeSbscSAAAAACHeG2vbvXV6GUOvWJkha3APtwMk";
-$publickey  = "6LeSbscSAAAAAFaSWi-qZMMc05v18G0911KG6byq";
-$boards = array("g", "sci", "diy");
-$cats = array("illegal", "spam");
+require_once('config.php');
+require_once(KU_ROOTDIR .'/lib/recaptchalib.php');
 
 function canIReport($ip){
 	global $db;
-	$query = $db->query("SELECT `end_date` FROM `user_reports_ban` WHERE `ipv4` ='".$ip."' AND `end_date` >'".time()."' LIMIT 0,1");
+	$query = $db->query("SELECT `until` FROM `".KU_DBPREFIX."banlist` WHERE `ip` ='".$ip."' AND `until` >'".time()."' AND `expired` = '0' LIMIT 0,1") or die ($db->error);
 	$amIBanned = $query->fetch_assoc();
 	if(!empty($amIBanned)){
 		return true;
@@ -50,7 +22,7 @@ if(!empty($_GET)){
 <html>
 	<head>
 		<title>Report Post #<?=$_GET['postid'];?></title>
-		<meta charset="UTF-8" />
+		<meta charset="UTF-8" /> 
 		<link rel="stylesheet" type="text/css" href="https://archive.installgentoo.net/media/fuuka.css" title="Fuuka" />
 		<style type="text/css"><!-- html,body { background:#eefff2; color:#002200; } img { border: none; } a { color:#34345c; } a:visited { color:#34345c; } a:hover { color:#DD0000; } .js, .js a { color:black;text-decoration:none; } .js:hover, .js a:hover { color:black;font-weight:bold;text-decoration:underline; } .thumb, .nothumb { float: left; margin: 2px 20px; } .doubledash { vertical-align:top;clear:both;float:left; } .inline { vertical-align:top; } .reply { background:#d6f0da; } .subreply { background:#cce1cf; } .highlight { background:#d6bad0; } .unkfunc{ color:#789922; } .postername { color:#117743; font-weight:bold; text-decoration: none; } .postertrip { color:#228854; text-decoration: none; } a.tooltip span, a.tooltip-red span { display:none; } --></style>
 		<style>
@@ -108,12 +80,12 @@ if(!empty($_GET)){
 	}
 }
 else if(!empty($_POST)){
-	$db = new mysqli("localhost", $username, $password, "fuuka");
+	$db = new mysqli(KU_DBHOST, KU_DBUSERNAME, KU_DBPASSWORD, KU_DBDATABASE);
 	if($db->connect_errno)
 		die("Cannot connect to MySQL");
-
-	if(canIReport($_SERVER['REMOTE_ADDR']))
-		die("You aren't allowed to report posts. DIE IN A FIRE.");
+	
+	//if(canIReport($_SERVER['REMOTE_ADDR']))
+	//	die("You aren't allowed to report posts. DIE IN A FIRE.");
 
 
 	$recap = recaptcha_check_answer($privatekey, $_SERVER["REMOTE_ADDR"], $_POST["recaptcha_challenge_field"], $_POST["recaptcha_response_field"]);
@@ -122,12 +94,12 @@ else if(!empty($_POST)){
 	}
 	else{
 		if(isset($_POST['cat']) && isset($_POST['board']) && isset($_POST['postid']) && is_numeric($_POST['postid']) && in_array($_POST['board'], $boards) && in_array($_POST['cat'], $cats)){
-			$find_post = $db->query("SELECT `num` FROM `".$_POST['board']."` WHERE `num` ='".$_POST['postid']."'"); //make sure the post exists
+			$find_post = $db->query("SELECT `num` FROM `".KU_FUUKADB."`.`".$_POST['board']."` WHERE `num` ='".$_POST['postid']."'"); //make sure the post exists
 			if($find_post->num_rows == 0){
 				die("There's no post matching that ID.");
 			}
 			else{
-				$db->query("INSERT INTO `user_reports` (`board_id`, `post_id`, `category`, `report_time`, `ipv4`, `action`) VALUES ('".$_POST['board']."', '".$_POST['postid']."', '".$_POST['cat']."', '".time()."', '".$_SERVER['REMOTE_ADDR']."', 'new')");
+				$db->query("INSERT INTO `".KU_DBPREFIX."reports` (`board`, `postid`, `reason`, `when`, `ip`, `cleared`) VALUES ('".$_POST['board']."', '".$_POST['postid']."', '".$_POST['cat']."', '".time()."', '".$_SERVER['REMOTE_ADDR']."', '0')") or die ($db->error);
 				$db->close();
 				echo '
 					<!DOCTYPE html>
