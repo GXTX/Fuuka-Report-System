@@ -1,1 +1,3 @@
-If you are actually interested in using this script please email me at aaron@installgentoo.net
+Essentially this ia modified Kusaba X install, please refer to their readme for installing this panel.
+
+I haven't had time to actually text OTHER/install-mysql.php but it /should/ work.
