@@ -1,28 +1,20 @@
---
--- Table structure for table `banlist`
---
+-- --------------------------------------------------------
 
 CREATE TABLE `PREFIX_banlist` (
-  `id` mediumint(8) unsigned NOT NULL auto_increment,
-  `type` tinyint(1) NOT NULL default '0',
-  `expired` tinyint(1) NOT NULL default '0',
-  `allowread` tinyint(1) NOT NULL default '1',
+  `id` mediumint(8) unsigned NOT NULL AUTO_INCREMENT,
+  `expired` tinyint(1) NOT NULL DEFAULT '0',
+  `type` int(11) NOT NULL,
   `ip` varchar(50) NOT NULL,
   `ipmd5` char(32) NOT NULL,
-  `globalban` tinyint(1) NOT NULL default '0',
-  `boards` varchar(255) NOT NULL,
   `by` varchar(75) NOT NULL,
   `at` int(20) NOT NULL,
   `until` int(20) NOT NULL,
   `reason` text NOT NULL,
   `staffnote` text NOT NULL,
-  `appeal` text,
-  `appealat` int(20) NOT NULL default '0',
-  PRIMARY KEY  (`id`)
+  PRIMARY KEY (`id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
-
 
 CREATE TABLE `PREFIX_loginattempts` (
   `username` varchar(255) NOT NULL,
@@ -32,10 +24,6 @@ CREATE TABLE `PREFIX_loginattempts` (
 
 -- --------------------------------------------------------
 
---
--- Table structure for table `modlog`
---
-
 CREATE TABLE `PREFIX_modlog` (
   `entry` text NOT NULL,
   `user` varchar(255) NOT NULL,
@@ -44,11 +32,6 @@ CREATE TABLE `PREFIX_modlog` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
-
-
---
--- Table structure for table `reports`
---
 
 CREATE TABLE `PREFIX_reports` (
   `id` smallint(5) unsigned NOT NULL auto_increment,
@@ -62,7 +45,6 @@ CREATE TABLE `PREFIX_reports` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
-
 
 CREATE TABLE `PREFIX_staff` (
   `id` smallint(5) unsigned NOT NULL auto_increment,
