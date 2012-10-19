@@ -1,10 +1,9 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE html>
 <html>
 <head>
-<title>{%KU_NAME}</title>
-<link rel="shortcut icon" href="{%KU_WEBPATH}/favicon.ico" />
-<link rel="stylesheet" type="text/css" href="{%KU_BOARDSPATH}/css/menu_global.css" />
-<link rel="stylesheet" type="text/css" href="{%KU_WEBPATH}/css/site_kusabax.css" />
+<title>Error</title>
+<link rel="stylesheet" type="text/css" href="{%KU_ARCHIVEPATH}media/fuuka.css" title="Fuuka" />
+<style type="text/css"><!-- html,body { background:#eefff2; color:#002200; } img { border: none; } a { color:#34345c; } a:visited { color:#34345c; } a:hover { color:#DD0000; } .js, .js a { color:black;text-decoration:none; } .js:hover, .js a:hover { color:black;font-weight:bold;text-decoration:underline; } .thumb, .nothumb { float: left; margin: 2px 20px; } .doubledash { vertical-align:top;clear:both;float:left; } .inline { vertical-align:top; } .reply { background:#d6f0da; } .subreply { background:#cce1cf; } .highlight { background:#d6bad0; } .unkfunc{ color:#789922; } .postername { color:#117743; font-weight:bold; text-decoration: none; } .postertrip { color:#228854; text-decoration: none; } a.tooltip span, a.tooltip-red span { display:none; } --></style>
 
 <style type="text/css">{literal}
 body {
@@ -21,10 +20,6 @@ body {
 {$errormsgext}
 <div style="text-align: center;width: 100%;position: absolute;bottom: 10px;">
 <br />
-<div class="footer" style="clear: both;">
-	{* I'd really appreciate it if you left the link to kusabax.org in the footer, if you decide to modify this. That being said, you are not bound by license or any other terms to keep it there *}
-	<div class="legal">	- <a href="http://kusabax.cultnet.net/" target="_top">kusaba x {%KU_VERSION}</a> -
-</div>
 </div>
 </body>
 </html>

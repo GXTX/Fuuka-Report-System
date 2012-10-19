@@ -1,36 +1,12 @@
 <?php
-if (function_exists('Dwoo_Plugin_capitalize')===false)
-	$this->getLoader()->loadPlugin('capitalize');
 if (function_exists('smarty_block_t')===false)
 	$this->getLoader()->loadPlugin('t');
-ob_start(); /* template body */ ?><!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+ob_start(); /* template body */ ?><!DOCTYPE html>
 <html>
 <head>
-<title><?php echo KU_NAME;?></title>
-<link rel="shortcut icon" href="<?php echo KU_WEBPATH;?>/favicon.ico" />
-<link rel="stylesheet" type="text/css" href="<?php echo KU_BOARDSPATH;?>/css/menu_global.css" />
-<?php 
-$_loop0_data = (isset($this->scope["styles"]) ? $this->scope["styles"] : null);
-if ($this->isArray($_loop0_data) === true)
-{
-	foreach ($_loop0_data as $tmp_key => $this->scope["-loop-"])
-	{
-		$_loop0_scope = $this->setScope(array("-loop-"));
-/* -- loop start output */
-?>
-	<link rel="<?php if ($this->scope != (defined("KU_DEFAULTMENUSTYLE") ? KU_DEFAULTMENUSTYLE : null)) {
-?>alternate <?php 
-}?>stylesheet" type="text/css" href="<?php echo KU_WEBFOLDER;?>css/site_<?php echo $this->scope;?>.css" title="<?php echo Dwoo_Plugin_capitalize($this, $this->scope, false);?>" />
-	<link rel="<?php if ($this->scope != (defined("KU_DEFAULTMENUSTYLE") ? KU_DEFAULTMENUSTYLE : null)) {
-?>alternate <?php 
-}?>stylesheet" type="text/css" href="<?php echo KU_WEBFOLDER;?>css/sitemenu_<?php echo $this->scope;?>.css" title="<?php echo Dwoo_Plugin_capitalize($this, $this->scope, false);?>" />
-<?php 
-/* -- loop end output */
-		$this->setScope($_loop0_scope, true);
-	}
-}
-?>
-
+<title>Error</title>
+<link rel="stylesheet" type="text/css" href="<?php echo KU_ARCHIVEPATH;?>media/fuuka.css" title="Fuuka" />
+<style type="text/css"><!-- html,body { background:#eefff2; color:#002200; } img { border: none; } a { color:#34345c; } a:visited { color:#34345c; } a:hover { color:#DD0000; } .js, .js a { color:black;text-decoration:none; } .js:hover, .js a:hover { color:black;font-weight:bold;text-decoration:underline; } .thumb, .nothumb { float: left; margin: 2px 20px; } .doubledash { vertical-align:top;clear:both;float:left; } .inline { vertical-align:top; } .reply { background:#d6f0da; } .subreply { background:#cce1cf; } .highlight { background:#d6bad0; } .unkfunc{ color:#789922; } .postername { color:#117743; font-weight:bold; text-decoration: none; } .postertrip { color:#228854; text-decoration: none; } a.tooltip span, a.tooltip-red span { display:none; } --></style>
 
 <style type="text/css">
 body {
@@ -49,9 +25,6 @@ body {
 
 <div style="text-align: center;width: 100%;position: absolute;bottom: 10px;">
 <br />
-<div class="footer" style="clear: both;">
-	<div class="legal">	- <a href="http://kusabax.cultnet.net/" target="_top">kusaba x <?php echo KU_VERSION;?></a> -
-</div>
 </div>
 </body>
 </html><?php  /* end template body */

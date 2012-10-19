@@ -63,8 +63,8 @@ $cf = array();
 			$cf['KU_WEBFOLDER'] = '/admin/'; // The path from the domain of the board to the folder which kusaba is in, including the trailing slash.  Example: "http://www.yoursite.com/misc/kusaba/" would have a $cf['KU_WEBFOLDER'] of "/misc/kusaba/"
 			$cf['KU_WEBPATH']   = 'https://archive.installgentoo.net/admin/'; // The path to the index folder of kusaba, without trailing slash. Example: http://www.yoursite.com
 			$cf['KU_DOMAIN']    = '.installgentoo.net'; // Used in cookies for the domain parameter.  Should be a period and then the top level domain, which will allow the cookies to be set for all subdomains.  For http://www.randomchan.org, the domain would be .randomchan.org; http://zachchan.freehost.com would be zach.freehost.com
-			$cf['KU_ARCHIVEPATH']	  = 'https://archive.installgentoo.net/';
-			$cf['KU_IMAGEDIR']		  = '/var/www/archive.installgentoo.net/board/';
+			$cf['KU_ARCHIVEPATH']  = 'https://archive.installgentoo.net/';
+			$cf['KU_IMAGEDIR']     = '/var/www/archive.installgentoo.net/board/';
 
 		// Board subdomain/alternate directory (optional, change to enable)
 			// DO NOT CHANGE THESE IF YOU DO NOT KNOW WHAT YOU ARE DOING!!
@@ -83,7 +83,7 @@ $cf = array();
 		$cf['KU_CACHEDTEMPLATEDIR'] = $cf['KU_ROOTDIR'] . 'dwoo/templates_c'; // Dwoo compiled templates directory.  This folder MUST be writable (you may need to chmod it to 755).  Set to '' to disable template caching
 	// Misc config
 		$cf['KU_MODLOGDAYS']        = 7; // Days to keep modlog entries before removing them
-		$cf['KU_RANDOMSEED']        = 'sfsoajf42309rfuw9jwefn239rf8yDE192U128DHHCFGHGGHGH3H38F]22RRF8TR83HF[0`1-15'; // Type a bunch of random letters/numbers here, any large amount (35+ characters) will do
+		$cf['KU_RANDOMSEED']        = ''; // Type a bunch of random letters/numbers here, any large amount (35+ characters) will do
 
 	// Language / timezone / encoding
 		$cf['KU_LOCALE']  = 'en'; // The locale of kusaba you would like to use.  Locales available: en, de, et, es, fi, pl, nl, nb, ro, ru, it, ja

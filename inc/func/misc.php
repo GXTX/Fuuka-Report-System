@@ -15,10 +15,6 @@ function exitWithErrorPage($errormsg, $extended = '') {
 	if (!isset($dwoo)) {
 		require_once KU_ROOTDIR . 'lib/dwoo.php';
 	}
-	/*if (!isset($board_class)) {
-		require_once KU_ROOTDIR . 'inc/classes/board-post.class.php';
-		$board_class = new Board('');
-	}*/
 
 	$dwoo_data->assign('styles', explode(':', KU_MENUSTYLES));
 	$dwoo_data->assign('errormsg', $errormsg);
@@ -50,12 +46,6 @@ function management_addlogentry($entry, $category = 0, $forceusername = '') {
 	if ($entry != '') {
 		$tc_db->Execute("INSERT INTO `" . KU_DBPREFIX . "modlog` ( `entry` , `user` , `category` , `timestamp` ) VALUES ( " . $tc_db->qstr($entry) . " , '" . $username . "' , " . $tc_db->qstr($category) . " , '" . time() . "' )");
 	}
-	/*if (KU_RSS) {
-		require_once(KU_ROOTDIR . 'inc/classes/rss.class.php');
-		$rss_class = new RSS();
-
-		print_page(KU_BOARDSDIR . 'modlogrss.xml', $rss_class->GenerateModLogRSS($entry), '');
-	}*/
 }
 
 /* Depending on the configuration, use either a meta refresh or a direct header */

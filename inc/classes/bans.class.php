@@ -26,12 +26,11 @@
 class Bans {
 
 	/* Perform a check for a ban record for a specified IP address */
-	function BanCheck($ip, $board = '', $force_display = false) {
+	function BanCheck($ip) {
 		global $tc_db;
 
-		if (!isset($_COOKIE['tc_previousip'])) {
+		if (!isset($_COOKIE['tc_previousip']))
 			$_COOKIE['tc_previousip'] = '';
-		}
 
 		$bans = Array();
 		$results = $tc_db->GetAll("SELECT * FROM `".KU_DBPREFIX."banlist` WHERE ((`type` = '0' AND ( `ipmd5` = '" . md5($ip) . "' OR `ipmd5` = '". md5($_COOKIE['tc_previousip']) . "' )) OR `type` = '1') AND (`expired` = 0)" );
@@ -41,61 +40,29 @@ class Bans {
 					if ($line['until'] != 0 && $line['until'] < time()){
 						$tc_db->Execute("UPDATE `".KU_DBPREFIX."banlist` SET `expired` = 1 WHERE `id` = ".$line['id']);
 						$line['expired'] = 1;
-						$this->UpdateHtaccess();
 					}
-					if ($line['globalban']!=1) {
-						if ((in_array($board, explode('|', $line['boards'])) || $board == '')) {
-							$line['appealin'] = substr(timeDiff($line['appealat'], true, 2), 0, -1);
-							$bans[] = $line;
-						}
-					} else {
-							$line['appealin'] = substr(timeDiff($line['appealat'], true, 2), 0, -1);
-							$bans[] = $line;
-					}
+					$bans[] = $line;
 				}
 			}
 		}
 		if(count($bans) > 0){
 			$tc_db->Execute("END TRANSACTION");
-			echo $this->DisplayBannedMessage($bans);
-			die();
+			die("You are currently banned.<br/>Sorry.");
 		}
-
-		if ($force_display) {
-			/* Instructed to display a page whether banned or not, so we will inform them today is their rucky day */
-			echo '<title>'._gettext('YOU ARE NOT BANNED!').'</title><div align="center"><img src="'. KU_WEBFOLDER .'youarenotbanned.jpg"><br /><br />'._gettext('Unable to find record of your IP being banned.').'</div>';
-		} else {
-			return true;
-		}
+		return true;
 	}
-
+	
 	/* Add a ip/ip range ban */
-	function BanUser($ip, $modname, $globalban, $duration, $boards, $reason, $staffnote, $appealat=0, $type=0, $allowread=1, $proxyban=false) {
+	function BanUser($ip, $modname, $duration, $reason, $staffnote) {
 		global $tc_db;
 		
-		if ($proxyban) {
-			$check = $tc_db->GetOne("SELECT COUNT(*) FROM `".KU_DBPREFIX."banlist` WHERE `type` = '".$type."' AND `ipmd5` = '".md5($ip)."'");
-			if ($check[0] > 0) {
-				return false;
-			}
-		}
-		
-		if ($duration>0) {
-			$ban_globalban = '0';
-		} else {
-			$ban_globalban = '1';
-		}
-		if ($duration>0) {
+		if ($duration>0)
 			$ban_until = time()+$duration;
-		} else {
+		else
 			$ban_until = '0';
-		}
 
-		$tc_db->Execute("INSERT INTO `".KU_DBPREFIX."banlist` ( `ip` , `ipmd5` , `type` , `allowread` , `globalban` , `boards` , `by` , `at` , `until` , `reason`, `staffnote`, `appealat` ) VALUES ( ".$tc_db->qstr(md5_encrypt($ip, KU_RANDOMSEED))." , ".$tc_db->qstr(md5($ip))." , ".intval($type)." , ".intval($allowread)." , ".intval($globalban)." , ".$tc_db->qstr($boards)." , ".$tc_db->qstr($modname)." , ".time()." , ".intval($ban_until)." , ".$tc_db->qstr($reason)." , ".$tc_db->qstr($staffnote).", ".intval($appealat)." ) ");
+		$tc_db->Execute("INSERT INTO `".KU_DBPREFIX."banlist` ( `ip` , `ipmd5` , `by` , `at` , `until` , `reason`, `staffnote` ) VALUES ( ".$tc_db->qstr(md5_encrypt($ip, KU_RANDOMSEED))." , ".$tc_db->qstr(md5($ip))." , ".$tc_db->qstr($modname)." , ".time()." , ".intval($ban_until)." , ".$tc_db->qstr($reason)." , ".$tc_db->qstr($staffnote).") ");
 
-		if (!$proxyban && $type == 1) {
-			$this->UpdateHtaccess();
-		}
 		return true;
 	}
 }

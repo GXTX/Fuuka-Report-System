@@ -567,9 +567,9 @@ class Manage {
 
 	/* Ban IPs from reporting */
 	/* Addition, modification, deletion, and viewing of bans */
-	/*function bans() {
+	function bans() {
 		global $tc_db, $tpl_page, $bans_class;
-		$this->AdministratorsOnly();
+		$this->ModeratorsOnly();
 
 		$reason = KU_BANREASON;
 		$ban_ip = '';
@@ -577,154 +577,30 @@ class Manage {
 		$ban_parentid = 0;
 		$multiban = Array();
 
-		if (isset($_POST['modban']) && is_array($_POST['post']) && $_POST['board']) {
-			$ban_board_id = $tc_db->GetOne("SELECT HIGH_PRIORITY `id` FROM `" . KU_DBPREFIX . "boards` WHERE `name` = " . $tc_db->qstr($_POST['board']) . "");
-			if (!empty($ban_board_id)) {
-				foreach ( $_POST['post'] as $post ) {
-					$results = $tc_db->GetAll("SELECT HIGH_PRIORITY * FROM `" . KU_DBPREFIX . "posts` WHERE `boardid` = '" . $ban_board_id . "' AND `id` = " . intval($post) . "");
-					if (count($results) > 0) {
-						$multiban[] = md5_decrypt($results[0]['ip'], KU_RANDOMSEED);
-						$multiban_hash[] = $results[0]['file_md5'];
-						$multiban_parentid[] = $results[0]['parentid'];
-					}
-				}
-			}
-		}
-
 		$tpl_page .= '<h2>'. _gettext('Bans') . '</h2><br />';
-		if (((isset($_POST['ip']) || isset($_POST['seconds']) && (!empty($_POST['ip']) || )))) {
-			if ($_POST['seconds'] >= 0 || $instantban) {
-				$banning_boards = array();
-				$ban_boards = '';
-				if (isset($_POST['banfromall']) || $instantban) {
-					$results = $tc_db->GetAll("SELECT HIGH_PRIORITY `name` FROM `" . KU_DBPREFIX . "boards`");
-					foreach ($results as $line) {
-						if (!$this->CurrentUserIsModeratorOfBoard($line['name'], $_SESSION['manageusername'])) {
-							exitWithErrorPage('/'. $line['name'] . '/: '. _gettext('You can only make bans applying to boards you moderate.'));
-						}
-					}
-				} else {
-					if (empty($_POST['bannedfrom'])) {
-						exitWithErrorPage(_gettext('Please select a board.'));
-					}
-					if(isset($_POST['deleteposts'])) {
-						$_POST['deletefrom'] = $_POST['bannedfrom'];
-					}
-					foreach($_POST['bannedfrom'] as $board) {
-						if (!$this->CurrentUserIsModeratorOfBoard($board, $_SESSION['manageusername'])) {
-							exitWithErrorPage('/'. $board . '/: '. _gettext('You can only make bans applying to boards you moderate.'));
-						}
-					}
-					$ban_boards = implode('|', $_POST['bannedfrom']);
-				}
-				$ban_globalban = (isset($_POST['banfromall']) || $instantban) ? 1 : 0;
-				$ban_allowread = ($_POST['allowread'] == 0 || $instantban) ? 0 : 1;
-				if (isset($_POST['quickbanboardid'])) {
-					$ban_board_id = $_POST['quickbanboardid'];
-				}
-				if(isset($_POST['quickbanboard'])) {
-					$ban_board = $_POST['quickbanboard'];
-				}
-				if(isset($_POST['quickbanpostid'])) {
-					$ban_post_id = $_POST['quickbanpostid'];
-				}
-				$ban_ip = ($instantban) ? $ban_ip : $_POST['ip'];
-				$ban_duration = ($_POST['seconds'] == 0 || $instantban) ? 0 : $_POST['seconds'];
-				$ban_type = ($_POST['type'] <= 2 && $_POST['type'] >= 0) ? $_POST['type'] : 0;
-				$ban_reason = ($instantban) ? $ban_reason : $_POST['reason'];
-				$ban_note = ($instantban) ? '' : $_POST['staffnote'];
-				$ban_appealat = 0;
-				if (KU_APPEAL != '' && !$instantban) {
-					$ban_appealat = intval($_POST['appealdays'] * 86400);
-					if ($ban_appealat > 0) $ban_appealat += time();
-				}
-				if (isset($_POST['multiban']))
-					$ban_ips = unserialize($_POST['multiban']);
-				else 
-					$ban_ips = Array($ban_ip);
-				$i = 0;
-				foreach ($ban_ips as $ban_ip) {
-					$ban_msg = '';
-					$whitelist = $tc_db->GetAll("SELECT `ipmd5` FROM `" . KU_DBPREFIX . "banlist` WHERE `type` = 2");
-					if (in_array(md5($ban_ip), $whitelist)) {
-						exitWithErrorPage(_gettext('That IP is on the whitelist'));
-					}
-					if ($bans_class->BanUser($ban_ip, $_SESSION['manageusername'], $ban_globalban, $ban_duration, $ban_boards, $ban_reason, $ban_note, $ban_appealat, $ban_type, $ban_allowread)) {
-						$regenerated = array();
-						if (((KU_BANMSG != '' || $_POST['banmsg'] != '') && isset($_POST['addbanmsg']) && (isset($_POST['quickbanpostid']) || isset($_POST['quickmultibanpostid']))) || $instantban ) {
-							$ban_msg = ((KU_BANMSG == $_POST['banmsg']) || empty($_POST['banmsg'])) ? KU_BANMSG : $_POST['banmsg'];
-							if (isset($ban_post_id))
-								$postids = Array($ban_post_id);
-							else
-								$postids = unserialize($_POST['quickmultibanpostid']);
-							$results = $tc_db->GetAll("SELECT HIGH_PRIORITY `parentid`, `message` FROM `".KU_DBPREFIX."posts` WHERE `boardid` = " . $tc_db->qstr($ban_board_id) . " AND `id` = ".$tc_db->qstr($postids[$i])." LIMIT 1");
-								
-							foreach($results AS $line) {
-								$tc_db->Execute("UPDATE `".KU_DBPREFIX."posts` SET `message` = ".$tc_db->qstr($line['message'] . $ban_msg)." WHERE `boardid` = " . $tc_db->qstr($ban_board_id) . " AND `id` = ".$tc_db->qstr($postids[$i]));
-								clearPostCache($postids[$i], $ban_board_id);
-								if ($line['parentid']==0) {
-									if (!in_array($postids, $regenerated)) {
-										$regenerated[] = $postids[$i];
-									}
-								} else {
-									if (!in_array($line['parentid'], $regenerated)) {
-										$regenerated[] = $line['parentid'];
-									}
-								}
-							}
-						}
-						$tpl_page .= _gettext('Ban successfully placed.')."<br />";
-					} else {
-						exitWithErrorPage(_gettext('Sorry, a generic error has occurred.'));
-					}
+		if (((isset($_POST['ip']) || isset($_POST['seconds']) && (!empty($_POST['ip']))))) {
+			if ($_POST['seconds'] >= 0) {
+				$ban_ip = $_POST['ip'];
+				$ban_duration = ($_POST['seconds'] == 0) ? 0 : $_POST['seconds'];
+				$ban_reason = $_POST['reason'];
+				$ban_note = $_POST['staffnote'];
+				$ban_msg = '';
 
-					$logentry = _gettext('Banned') . ' '. $ban_ip;
-					$logentry .= ($ban_duration == 0) ? ' '. _gettext('without expiration') : ' '. _gettext('until') . ' '. date('F j, Y, g:i a', time() + $ban_duration);
-					$logentry .= ' - '. _gettext('Reason') . ': '. $ban_reason . (($ban_note) ? (" (".$ban_note.")") : ("")). ' - '. _gettext('Banned from') . ': ';
-					$logentry .= ($ban_globalban == 1) ? _gettext('All boards') . ' ' : '/'. implode('/, /', explode('|', $ban_boards)) . '/ ';
-					management_addlogentry($logentry, 8);
-					$ban_ip = '';
-					$i++;
+				if($bans_class->BanUser($ban_ip, $_SESSION['manageusername'], $ban_duration, $ban_reason, $ban_note)){
+					$tpl_page .= _gettext('Ban successfully placed.')."<br />";	
 				}
-				if (count($regenerated) > 0) {
-					$board_class = new Board($ban_board);
-					foreach($regenerated as $thread) {
-						$board_class->RegenerateThreads($thread);
-					}
-					$board_class->RegeneratePages();
-					unset($board_class);
+				else{
+					exitWithErrorPage(_gettext('Sorry, a generic error has occurred.'));
 				}
 
-				if(isset($_POST['deleteposts'])) {
-					$tpl_page .= '<br />';
-					$this->deletepostsbyip(true);
-				}
-
-				if ((isset($_GET['instant']) && !isset($_GET['cp']))) {
-					die("success");
-				}
-
-				if (isset($_POST['banhashtime']) && $_POST['banhashtime'] !== '' && ($_POST['hash'] !== '' || isset($_POST['multibanhashes'])) && $_POST['banhashtime'] >= 0) {
-					if (isset($_POST['multibanhashes']))
-						$banhashes = unserialize($_POST['multibanhashes']);
-					else
-						$banhashes = Array($_POST['hash']);
-					foreach ($banhashes as $banhash){
-						$results = $tc_db->GetOne("SELECT HIGH_PRIORITY COUNT(*) FROM `".KU_DBPREFIX."bannedhashes` WHERE `md5` = ".$tc_db->qstr($banhash)." LIMIT 1");
-						if ($results == 0) {
-							$tc_db->Execute("INSERT INTO `".KU_DBPREFIX."bannedhashes` ( `md5` , `bantime` , `description` ) VALUES ( ".$tc_db->qstr($banhash)." , ".$tc_db->qstr($_POST['banhashtime'])." , ".$tc_db->qstr($_POST['banhashdesc'])." )");
-							management_addlogentry('Banned md5 hash '. $banhash . ' with a description of '. $_POST['banhashdesc'], 8);
-						}
-					}
-				}
-				if (!empty($_POST['quickbanboard']) && !empty($_POST['quickbanthreadid'])) {
-					$tpl_page .= '<br /><br /><meta http-equiv="refresh" content="1;url='. KU_BOARDSPATH . '/'. $_POST['quickbanboard'] . '/';
-					if ($_POST['quickbanthreadid'] != '0') $tpl_page .= 'res/'. $_POST['quickbanthreadid'] . '.html';
-					$tpl_page .= '"><a href="'. KU_BOARDSPATH . '/'. $_POST['quickbanboard'] . '/';
-					if ($_POST['quickbanthreadid'] != '0') $tpl_page .= 'res/'. $_POST['quickbanthreadid'] . '.html';
-					$tpl_page .= '">'. _gettext('Redirecting') . '</a>...';
-				}
-			} else {
+				$logentry = _gettext('Banned') . ' '. $ban_ip;
+				$logentry .= ($ban_duration == 0) ? ' '. _gettext('without expiration') : ' '. _gettext('until') . ' '. date('F j, Y, g:i a', time() + $ban_duration);
+				$logentry .= ' - '. _gettext('Reason') . ': '. $ban_reason . (($ban_note) ? (" (".$ban_note.")") : ("")). ' - '. _gettext('Banned from') . ': Reporting.';
+				management_addlogentry($logentry, 8);
+				$ban_ip = '';
+				$i++;
+			}
+			else {
 				$tpl_page .= _gettext('Please enter a positive amount of seconds, or zero for a permanent ban.');
 			}
 			$tpl_page .= '<hr />';
@@ -734,7 +610,6 @@ class Manage {
 			if (count($results) > 0) {
 				$unban_ip = md5_decrypt($results[0]['ip'], KU_RANDOMSEED);
 				$tc_db->Execute("DELETE FROM `" . KU_DBPREFIX . "banlist` WHERE `id` = " . $tc_db->qstr($_GET['delban']) . "");
-				$bans_class->UpdateHtaccess();
 				$tpl_page .= _gettext('Ban successfully removed.');
 				management_addlogentry(_gettext('Unbanned') . ' '. $unban_ip, 8);
 			} else {
@@ -742,23 +617,12 @@ class Manage {
 			}
 			$tpl_page .= '<br /><hr />';
 		}
-	#}
 
 		flush();
 
-		$isquickban = false;
-
 		$tpl_page .= '<form action="manage_page.php?action=bans" method="post" name="banform">';
 
-		if ((!empty($ban_ip) && isset($_GET['banboard']) && isset($_GET['banpost'])) || (!empty($multiban) && isset($_POST['board']) && isset($_POST['post'])))  {
-			$isquickban = true;
-			$tpl_page .= '<input type="hidden" name="quickbanboard" value="'. (isset($_GET['banboard']) ? $_GET['banboard'] : $_POST['board']) . '" />';
-			if(!empty($multiban)) {
-				$tpl_page .= '<input type="hidden" name="quickbanboardid" value="'. $ban_board_id . '" /><input type="hidden" name="quickmultibanthreadid" value="'. htmlspecialchars(serialize($multiban_parentid)) . '" /><input type="hidden" name="quickmultibanpostid" value="'. htmlspecialchars(serialize($_POST['post'])) . '" />';
-			} else {
-				$tpl_page .= '<input type="hidden" name="quickbanboardid" value="'. $ban_board_id . '" /><input type="hidden" name="quickbanthreadid" value="'. $ban_parentid . '" /><input type="hidden" name="quickbanpostid" value="'. $_GET['banpost'] . '" />';
-			}
-		} elseif (isset($_GET['ip'])) {
+		if (isset($_GET['ip'])){
 			$ban_ip = $_GET['ip'];
 		}
 
@@ -783,68 +647,54 @@ class Manage {
 		</form>
 		<hr /><br />';
 
-		for ($i = 2; $i >= 0; $i--) {
-			switch ($i) {
-				case 2:
-					$tpl_page .= '<strong>'. _gettext('Whitelisted IPs') . ':</strong><br />';
-					break;
-				case 1:
-					$tpl_page .= '<br /><strong>'. _gettext('IP Range Bans') . ':</strong><br />';
-					break;
-				case 0:
-					if (!empty($ban_ip))
-						$tpl_page .= '<br /><strong>'. _gettext('Previous bans on this IP') . ':</strong><br />';
-					else
-						$tpl_page .= '<br /><strong>'. _gettext('Single IP Bans') . ':</strong><br />';
-					break;
-			}
-			if (isset($_GET['allbans'])) {
-				$results = $tc_db->GetAll("SELECT HIGH_PRIORITY * FROM `" . KU_DBPREFIX . "banlist` WHERE `type` = '" . $i . "' AND `by` != 'SERVER' ORDER BY `id` DESC");
-				$hiddenbans = 0;
-			} elseif (isset($_GET['limit'])) {
-				$results = $tc_db->GetAll("SELECT HIGH_PRIORITY * FROM `" . KU_DBPREFIX . "banlist` WHERE `type` = '" . $i . "' ORDER BY `id` DESC LIMIT ".intval($_GET['limit']));
-				$hiddenbans = 0;
+		$i = 0;
+
+		if (!empty($ban_ip))
+			$tpl_page .= '<br /><strong>'. _gettext('Previous bans on this IP') . ':</strong><br />';
+		else
+			$tpl_page .= '<br /><strong>'. _gettext('Single IP Bans') . ':</strong><br />';
+
+		if (isset($_GET['allbans'])) {
+			$results = $tc_db->GetAll("SELECT HIGH_PRIORITY * FROM `" . KU_DBPREFIX . "banlist` WHERE `type` = '" . $i . "' AND `by` != 'SERVER' ORDER BY `id` DESC");
+			$hiddenbans = 0;
+		} elseif (isset($_GET['limit'])) {
+			$results = $tc_db->GetAll("SELECT HIGH_PRIORITY * FROM `" . KU_DBPREFIX . "banlist` WHERE `type` = '" . $i . "' ORDER BY `id` DESC LIMIT ".intval($_GET['limit']));
+			$hiddenbans = 0;
+		} else {
+			if (!empty($ban_ip) && $i == 0) {
+				$results = $tc_db->GetAll("SELECT HIGH_PRIORITY * FROM `" . KU_DBPREFIX . "banlist` WHERE `ipmd5` = '" . md5($ban_ip) . "' AND `type` = '" . $i . "' AND `by` != 'SERVER' ORDER BY `id` DESC");
 			} else {
-				if (!empty($ban_ip) && $i == 0) {
-					$results = $tc_db->GetAll("SELECT HIGH_PRIORITY * FROM `" . KU_DBPREFIX . "banlist` WHERE `ipmd5` = '" . md5($ban_ip) . "' AND `type` = '" . $i . "' AND `by` != 'SERVER' ORDER BY `id` DESC");
-				} else {
-					$results = $tc_db->GetAll("SELECT HIGH_PRIORITY * FROM `" . KU_DBPREFIX . "banlist` WHERE `type` = '" . $i . "' AND `by` != 'SERVER' ORDER BY `id` DESC LIMIT 15");
-					// Get the number of bans in the database of this type
-					$hiddenbans = $tc_db->GetAll("SELECT HIGH_PRIORITY COUNT(*) FROM `" . KU_DBPREFIX . "banlist` WHERE `type` = '" . $i . "'");
-					// Subtract 15 from the count, since we only want the number not shown
-					$hiddenbans = $hiddenbans[0][0] - 15;
-				}
-			}
-			if (count($results) > 0) {
-				$tpl_page .= '<table border="1" width="100%"><tr><th>';
-				$tpl_page .= ($i == 1) ? _gettext('IP Range') : _gettext('IP Address');
-				$tpl_page .= '</th><th>'. _gettext('Boards') . '</th><th>'. _gettext('Reason') . '</th><th>'. _gettext('Staff Note') . '</th><th>'. _gettext('Date added') . '</th><th>'. _gettext('Expires/Expired') . '</th><th>'. _gettext('Added By') . '</th><th>&nbsp;</th></tr>';
-				foreach ($results as $line) {
-					$tpl_page .= '<tr><td><a href="?action=bans&ip='. md5_decrypt($line['ip'], KU_RANDOMSEED) . '">'. md5_decrypt($line['ip'], KU_RANDOMSEED) . '</a></td><td>';
-					if ($line['globalban'] == 1) {
-						$tpl_page .= '<strong>'. _gettext('All boards') . '</strong>';
-					} elseif (!empty($line['boards'])) {
-						$tpl_page .= '<strong>/'. implode('/</strong>, <strong>/', explode('|', $line['boards'])) . '/</strong>&nbsp;';
-					}
-					$tpl_page .= '</td><td>';
-					$tpl_page .= (!empty($line['reason'])) ? htmlentities(stripslashes($line['reason'])) : '&nbsp;';
-					$tpl_page .= '</td><td>';
-					$tpl_page .= (!empty($line['staffnote'])) ? htmlentities(stripslashes($line['staffnote'])) : '&nbsp;';
-					$tpl_page .= '</td><td>'. date("F j, Y, g:i a", $line['at']) . '</td><td>';
-					$tpl_page .= ($line['until'] == 0) ? '<strong>'. _gettext('Does not expire') . '</strong>' : date("F j, Y, g:i a", $line['until']);
-					$tpl_page .= '</td><td>'. $line['by'] . '</td><td>[<a href="manage_page.php?action=bans&delban='. $line['id'] . '">'. _gettext('Delete') .'</a>]</td></tr>';
-				}
-				$tpl_page .= '</table>';
-				if ($hiddenbans > 0) {
-					$tpl_page .= sprintf(_gettext('%s bans not shown.'), $hiddenbans) .
-					' <a href="?action=bans&allbans=1">'. _gettext('View all bans') . '</a>'.' <a href="?action=bans&limit=100">View last 100 bans</a>';
-				}
-			} else {
-				$tpl_page .= _gettext('There are currently no bans');
+				$results = $tc_db->GetAll("SELECT HIGH_PRIORITY * FROM `" . KU_DBPREFIX . "banlist` WHERE `type` = '" . $i . "' AND `by` != 'SERVER' ORDER BY `id` DESC LIMIT 15");
+				// Get the number of bans in the database of this type
+				$hiddenbans = $tc_db->GetAll("SELECT HIGH_PRIORITY COUNT(*) FROM `" . KU_DBPREFIX . "banlist` WHERE `type` = '" . $i . "'");
+				// Subtract 15 from the count, since we only want the number not shown
+				$hiddenbans = $hiddenbans[0][0] - 15;
 			}
 		}
+		if (count($results) > 0) {
+			$tpl_page .= '<table border="1" width="100%"><tr><th>';
+			$tpl_page .= _gettext('IP Address');
+			$tpl_page .= '</th><th>'. _gettext('Boards') . '</th><th>'. _gettext('Reason') . '</th><th>'. _gettext('Staff Note') . '</th><th>'. _gettext('Date added') . '</th><th>'. _gettext('Expires/Expired') . '</th><th>'. _gettext('Added By') . '</th><th>&nbsp;</th></tr>';
+			foreach ($results as $line) {
+				$tpl_page .= '<tr><td><a href="?action=bans&ip='. md5_decrypt($line['ip'], KU_RANDOMSEED) . '">'. md5_decrypt($line['ip'], KU_RANDOMSEED) . '</a></td><td>';
+				$tpl_page .= '<strong>'. _gettext('All boards') . '</strong>';
+				$tpl_page .= '</td><td>';
+				$tpl_page .= (!empty($line['reason'])) ? htmlentities(stripslashes($line['reason'])) : '&nbsp;';
+				$tpl_page .= '</td><td>';
+				$tpl_page .= (!empty($line['staffnote'])) ? htmlentities(stripslashes($line['staffnote'])) : '&nbsp;';
+				$tpl_page .= '</td><td>'. date("F j, Y, g:i a", $line['at']) . '</td><td>';
+				$tpl_page .= ($line['until'] == 0) ? '<strong>'. _gettext('Does not expire') . '</strong>' : date("F j, Y, g:i a", $line['until']);
+				$tpl_page .= '</td><td>'. $line['by'] . '</td><td>[<a href="manage_page.php?action=bans&delban='. $line['id'] . '">'. _gettext('Delete') .'</a>]</td></tr>';
+			}
+			$tpl_page .= '</table>';
+			if ($hiddenbans > 0) {
+				$tpl_page .= sprintf(_gettext('%s bans not shown.'), $hiddenbans) .' <a href="?action=bans&allbans=1">'. _gettext('View all bans') . '</a>'.' <a href="?action=bans&limit=100">View last 100 bans</a>';
+			}
+		} else {
+			$tpl_page .= _gettext('There are currently no bans');
+		}
 		$tpl_page .= '</table>';
-	}*/
+	}
 	
 	
 	
@@ -895,7 +745,7 @@ class Manage {
 			}
 		}
 
-		$query = "SELECT HIGH_PRIORITY * FROM `" . KU_DBPREFIX . "reports` WHERE `cleared` = '0'";
+		$query = "SELECT HIGH_PRIORITY * FROM `" . KU_DBPREFIX . "reports` WHERE `cleared` = '0' ORDER BY `when` DESC";
 		$resultsreport = $tc_db->GetAll($query);
 		if (count($resultsreport) > 0) {
 			$tpl_page .= '<table border="1" width="100%"><tr><th>Board</th><th>Post</th><th>File</th><th>Message</th><th>Reason</th><th>Reporter IP</th><th>Action</th></tr>';
