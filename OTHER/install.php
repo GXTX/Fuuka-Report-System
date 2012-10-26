@@ -54,7 +54,7 @@ if (file_exists('config.php')) {
 	if (KU_RANDOMSEED!="ENTER RANDOM LETTERS/NUMBERS HERE"&&KU_RANDOMSEED!="") {
 		echo 'Configuration appears correct.';
 		echo '<h2>Checking database...</h2>';
-		$reqiredtables = array("announcements","banlist","loginattempts","modlog","reports","staff");
+		$reqiredtables = array("banlist","loginattempts","modlog","reports","staff");
 		foreach ($reqiredtables as $tablename) {
 			if (KU_DBTYPE == 'mysql' || KU_DBTYPE == 'mysqli') {
 				if (!mysql_table_exists(KU_DBDATABASE,KU_DBPREFIX.$tablename)) {

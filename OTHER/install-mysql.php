@@ -67,7 +67,7 @@ Before running this script, make sure that:<br />
 <?php
 } else {
 	require('config.php');
-	$reqiredtables = array("announcements","banlist","loginattempts","modlog","reports","staff");
+	$reqiredtables = array("banlist","loginattempts","modlog","reports","staff");
 	foreach ($reqiredtables as $tablename) {
 			if (mysql_table_exists(KU_DBDATABASE,KU_DBPREFIX.$tablename)) {
 					die("Table <strong>".KU_DBPREFIX.$tablename."</strong> already exists in the database! Drop it, and re run this script.");
