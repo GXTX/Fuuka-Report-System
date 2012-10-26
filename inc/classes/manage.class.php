@@ -734,9 +734,10 @@ class Manage {
 
 				@unlink(KU_IMAGEDIR.$tc_db->qstr($reportinfo[0]['board']).'/'.$thumb.'/'.$postinfo['preview']);	
 
-				if($_GET['delete'] == "post")
+				if($_GET['delete'] == "post"){
 					$tc_db->Execute("DELETE FROM `".KU_FUUKADB."`.`".$reportinfo[0]['board']."` WHERE `num` = '".$reportinfo[0]['postid']."'");
 					$logentry .= ' and comment.';
+				}
 
 				management_addlogentry($logentry, 0);
 			}
