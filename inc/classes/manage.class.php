@@ -142,19 +142,6 @@ class Manage {
 
 	/* Set mod cookies for boards */
 	function SetModerationCookies() {
-		global $tc_db, $tpl_page;
-
-		/*if (isset($_SESSION['manageusername'])) {
-			$results = $tc_db->GetAll("SELECT HIGH_PRIORITY `boards` FROM `" . KU_DBPREFIX . "staff` WHERE `username` = " . $tc_db->qstr($_SESSION['manageusername']) . " LIMIT 1");
-			if ($this->CurrentUserIsAdministrator() || $results[0][0] == 'allboards') {
-				setcookie("kumod", "allboards", time() + 3600, KU_BOARDSFOLDER, KU_DOMAIN);
-			}
-			else {
-				if ($results[0][0] != '') {
-					setcookie("kumod", $results[0][0], time() + 3600, KU_BOARDSFOLDER, KU_DOMAIN);
-				}
-			}
-		}*/
 	}
 
   function CheckToken($posttoken) {
@@ -359,9 +346,6 @@ class Manage {
 				if(file_exists(KU_TEMPLATEDIR . '/'. $file)) {
 					file_put_contents(KU_TEMPLATEDIR . '/'. $file, $_POST['templatedata']);
 					$tpl_page .= '<hr /><h3>'. _gettext('Template edited') .'</h3><hr />';
-					/*if (isset($_POST['rebuild'])) {
-						$this->rebuildall();
-					}*/
 					unset($_POST['template']);
 					unset($_POST['templatedata']);
 				}
@@ -387,8 +371,7 @@ class Manage {
           <input type="hidden" name="token" value="' . $_SESSION['token'] . '" />
 					<input type="hidden" name="template" value="'. $file .'" />
 					<textarea wrap=off rows=40 cols=100 name="templatedata">'. htmlspecialchars(file_get_contents(KU_TEMPLATEDIR . '/'. $file)) . '</textarea>
-					<!--<label for="rebuild">'. _gettext('Rebuild HTML after edit?') .'</label>
-					<input type="checkbox" name="rebuild" />--><br /><br />
+					<br /><br />
 					<div class="desc">'. _gettext('Visit <a href="http://wiki.dwoo.org/">http://wiki.dwoo.org/</a> for syntax information.') . '</div>
 					<div class="desc">'. sprintf(_gettext('To access Kusaba variables, use {%%KU_VARNAME}, for example {%%KU_BOARDSPATH} would be replaced with %s'), KU_BOARDSPATH) . '</div>
 					<div class="desc">'. _gettext('Enclose text in {t}{/t} blocks to allow them to be translated for different languages.') . '</div><br /><br />';
@@ -410,7 +393,7 @@ class Manage {
 			$results = $tc_db->GetAll("SELECT HIGH_PRIORITY * FROM `" .KU_DBPREFIX. "staff` WHERE `username` = " .$tc_db->qstr($_POST['username']));
 			if(count($results) == 0) {
 				if($_POST['type'] < 3 && $_POST['type'] >= 0){
-          $this->CheckToken($_POST['token']);
+					$this->CheckToken($_POST['token']);
 					$salt = $this->CreateSalt();
 					$tc_db->Execute("INSERT HIGH_PRIORITY INTO `" .KU_DBPREFIX. "staff` ( `username` , `password` , `salt` , `type` , `addedon` ) VALUES (" .$tc_db->qstr($_POST['username']). " , '" .md5($_POST['password'] . $salt). "' , '" .$salt. "' , '" .$_POST['type']. "' , '" .time(). "' )");
 					$log = _gettext('Added'). ' ';
@@ -695,9 +678,9 @@ class Manage {
 		}
 		$tpl_page .= '</table>';
 	}
-	
-	
-	
+
+
+
 	/*
 	* +------------------------------------------------------------------------------+
 	* Moderation Pages
@@ -707,9 +690,9 @@ class Manage {
 	function reports() {
 		global $tc_db, $tpl_page, $boards;
 		$this->ModeratorsOnly();
-		
+
 		$tpl_page .= '<h2>'. _gettext('Reports') . '</h2><br />';
-		
+
 		if(isset($_GET['clear']) && is_numeric($_GET['clear'])){
 			$resultsreport = $tc_db->GetAll("SELECT `id` FROM `" . KU_DBPREFIX . "reports` WHERE `id` ='" . intval($_GET['clear']) . "'");
 			if (count($resultsreport) == 1){
@@ -718,7 +701,7 @@ class Manage {
 				management_addlogentry('Cleared report id '.$_GET['clear'], 0);
 			}
 		}
-		
+
 		if(isset($_GET['report']) && is_numeric($_GET['report']) && isset($_GET['delete'])){
 			$reportinfo = $tc_db->GetAll("SELECT * FROM `" . KU_DBPREFIX . "reports` WHERE `id` ='".(int)$_GET['report']."'");
 			if(count($reportinfo) > 0){
@@ -736,7 +719,9 @@ class Manage {
 
 				if($_GET['delete'] == "post"){
 					$tc_db->Execute("DELETE FROM `".KU_FUUKADB."`.`".$reportinfo[0]['board']."` WHERE `num` = '".$reportinfo[0]['postid']."'");
-					$logentry .= ' and comment.';
+					/* Make sure we update other reports */
+					$tc_db->Execute("UPDATE `" . KU_DBPREFIX . "reports` SET `cleared` ='1' WHERE `num` ='".$reportinfo[0]['postid']."'");
+					$logentry .= ' and comment';
 				}
 
 				management_addlogentry($logentry, 0);
@@ -755,13 +740,12 @@ class Manage {
 				foreach ($results as $line){
 						$tpl_page .= '<tr><td>/'. $linereport['board'] . '/</td><td><a href="'.KU_ARCHIVEPATH.$linereport['board'].'/post/'.$line['num'].'">'.$line['num'].'</a></td><td>';
 						if($line['preview'] != NULL){
-
 							if($line['parent'] == 0)
 								$thumb = $this->findImageDir($line['num']);
 							else
 								$thumb = $this->findImageDir($line['parent']);
-							
-							$tpl_page .= "[<a href=\"https://archive.installgentoo.net/board/".$linereport['board']."/thumb/".$thumb."/".$line['preview']."\">Thumb</a>]";
+
+							$tpl_page .= '[<a href='.KU_ARCHIVEPATH.'/board/'.$linereport['board'].'/thumb/'.$thumb.'/'.$line['preview'].'">Thumb</a>]';
 						}
 						$tpl_page .= '</td><td>';
 
