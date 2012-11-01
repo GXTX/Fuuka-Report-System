@@ -745,7 +745,7 @@ class Manage {
 							else
 								$thumb = $this->findImageDir($line['parent']);
 
-							$tpl_page .= '[<a href='.KU_ARCHIVEPATH.'/board/'.$linereport['board'].'/thumb/'.$thumb.'/'.$line['preview'].'">Thumb</a>]';
+							$tpl_page .= '[<a href='.KU_ARCHIVEPATH.'board/'.$linereport['board'].'/thumb/'.$thumb.'/'.$line['preview'].'>Thumb</a>]';						}
 						}
 						$tpl_page .= '</td><td>';
 
