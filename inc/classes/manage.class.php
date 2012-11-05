@@ -26,11 +26,10 @@ class Manage {
 	function Header() {
 		global $dwoo_data, $tpl_page;
 
-		if (is_file(KU_ROOTDIR . 'inc/pages/modheader.html')) {
+		if (is_file(KU_ROOTDIR . 'inc/pages/modheader.html'))
 			$tpl_includeheader = file_get_contents(KU_ROOTDIR . 'inc/pages/modheader.html');
-		} else {
+		else
 			$tpl_includeheader = '';
-		}
 
 		$dwoo_data->assign('includeheader', $tpl_includeheader);
 	}
@@ -40,9 +39,6 @@ class Manage {
 		global $dwoo_data, $dwoo, $tpl_page;
 
 		$dwoo_data->assign('page', $tpl_page);
-
-		#$board_class = new Board('');
-
 		$dwoo->output(KU_TEMPLATEDIR . '/manage.tpl', $dwoo_data);
 	}
 
@@ -85,9 +81,9 @@ class Manage {
 	function LoginForm() {
 		global $tc_db, $tpl_page;
 
-		if (file_exists(KU_ROOTDIR . 'inc/pages/manage_login.html')) {
+		if (file_exists(KU_ROOTDIR . 'inc/pages/manage_login.html'))
 			$tpl_page .= file_get_contents(KU_ROOTDIR . 'inc/pages/manage_login.html');
-		}
+
 	}
 
 	/* Check login names and create session if user/pass is correct */
@@ -109,10 +105,8 @@ class Manage {
 						$tc_db->Execute("UPDATE `" .KU_DBPREFIX. "staff` SET password = '" .$newpass. "' WHERE username = " .$tc_db->qstr($_POST['username']));
 						$_SESSION['manageusername'] = $_POST['username'];
 						$_SESSION['managepassword'] = $newpass;
-            $_SESSION['token'] = md5($_SESSION['manageusername'] . $_SESSION['managepassword'] . rand(0,100));
-						$this->SetModerationCookies();
+						$_SESSION['token'] = md5($_SESSION['manageusername'] . $_SESSION['managepassword'] . rand(0,100));
 						$tc_db->Execute("DELETE FROM `" . KU_DBPREFIX . "loginattempts` WHERE `ip` < '" . $_SERVER['REMOTE_ADDR'] . "'");
-						$action = 'posting_rates';
 						management_addlogentry(_gettext('Logged in'), 1);
 						die('<script type="text/javascript">top.location.href = \''. KU_CGIPATH .'/manage.php\';</script>');
 					} else {
@@ -123,9 +117,7 @@ class Manage {
 					if (md5($_POST['password'] . $results[0]['salt']) == $results[0]['password']) {
 						$_SESSION['manageusername'] = $_POST['username'];
 						$_SESSION['managepassword'] = md5($_POST['password'] . $results[0]['salt']);
-            $_SESSION['token'] = md5($_SESSION['manageusername'] . $_SESSION['managepassword'] . rand(0,100));
-						$this->SetModerationCookies();
-						$action = 'posting_rates';
+						$_SESSION['token'] = md5($_SESSION['manageusername'] . $_SESSION['managepassword'] . rand(0,100));
 						management_addlogentry(_gettext('Logged in'), 1);
 						die('<script type="text/javascript">top.location.href = \''. KU_CGIPATH .'/manage.php\';</script>');
 					} else {
@@ -140,24 +132,19 @@ class Manage {
 		}
 	}
 
-	/* Set mod cookies for boards */
-	function SetModerationCookies() {
+	function CheckToken($posttoken) {
+		if ($posttoken != $_SESSION['token']) {
+		// Something is strange
+		session_destroy();
+		exitWithErrorPage(_gettext('Invalid Token'));
+		}
 	}
-
-  function CheckToken($posttoken) {
-    if ($posttoken != $_SESSION['token']) {
-      // Something is strange
-      session_destroy();
-      exitWithErrorPage(_gettext('Invalid Token'));
-    }
-  }
 
 	/* Log current user out */
 	function Logout() {
-		global $tc_db, $tpl_page;
+		//global $tc_db, $tpl_page; #Why?
 
 		setcookie('kumod', '', time() - 3600, KU_BOARDSFOLDER, KU_DOMAIN);
-
 		session_destroy();
 		unset($_SESSION['manageusername']);
 		unset($_SESSION['managepassword']);
@@ -165,13 +152,13 @@ class Manage {
 		die('<script type="text/javascript">top.location.href = \''. KU_CGIPATH .'/manage.php\';</script>');
 	}
 
-		/* If the user logged in isn't an admin, kill the script */
+	/* If the user logged in isn't an admin, kill the script */
 	function AdministratorsOnly() {
 		global $tc_db, $tpl_page;
 
-		if (!$this->CurrentUserIsAdministrator()) {
+		if (!$this->CurrentUserIsAdministrator())
 			exitWithErrorPage('That page is for admins only.');
-		}
+
 	}
 
 	/* If the user logged in isn't an moderator or higher, kill the script */
@@ -223,7 +210,7 @@ class Manage {
 		if ($_SESSION['manageusername'] == '' || $_SESSION['managepassword'] == '' || $_SESSION['token'] == '') {
 			$_SESSION['manageusername'] = '';
 			$_SESSION['managepassword'] = '';
-      $_SESSION['token'] = '';
+			$_SESSION['token'] = '';
 			return false;
 		}
 
@@ -267,7 +254,7 @@ class Manage {
 		global $tc_db, $tpl_page;
 		$this->ModeratorsOnly();
 
-		$tpl_page .= '<h1><center>'. _gettext('Announcements') .'</center></h1>'. "\n";
+		$tpl_page .= '<h1><center>'. _gettext('Place Holder') .'</center></h1>'. "\n";
 		$tpl_page .= 'boop.'. "\n";
 	}
 
@@ -276,7 +263,7 @@ class Manage {
 
 		$tpl_page .= '<h2>'. _gettext('Change account password') . '</h2><br />';
 		if (isset($_POST['oldpwd']) && isset($_POST['newpwd']) && isset($_POST['newpwd2'])) {
-      $this->CheckToken($_POST['token']);
+			$this->CheckToken($_POST['token']);
 			if ($_POST['oldpwd'] != '' && $_POST['newpwd'] != '' && $_POST['newpwd2'] != '') {
 				if ($_POST['newpwd'] == $_POST['newpwd2']) {
 					$results = $tc_db->GetAll("SELECT HIGH_PRIORITY * FROM `" . KU_DBPREFIX . "staff` WHERE `username` = " . $tc_db->qstr($_SESSION['manageusername']) . "");
@@ -299,19 +286,16 @@ class Manage {
 			}
 			$tpl_page .= '<hr />';
 		}
-		$tpl_page .= '<form action="manage_page.php?action=changepwd" method="post">
-    <input type="hidden" name="token" value="' . $_SESSION['token'] . '" />
-		<label for="oldpwd">'. _gettext('Old password') . ':</label>
-		<input type="password" name="oldpwd" /><br />
-
-		<label for="newpwd">'. _gettext('New password') . ':</label>
-		<input type="password" name="newpwd" /><br />
-
-		<label for="newpwd2">'. _gettext('New password again') . ':</label>
-		<input type="password" name="newpwd2" /><br />
-
-		<input type="submit" value="' ._gettext('Change account password') . '" />
-
+		$tpl_page .= '
+		<form action="manage_page.php?action=changepwd" method="post">
+			<input type="hidden" name="token" value="' . $_SESSION['token'] . '" />
+			<label for="oldpwd">'. _gettext('Old password') . ':</label>
+			<input type="password" name="oldpwd" /><br />
+			<label for="newpwd">'. _gettext('New password') . ':</label>
+			<input type="password" name="newpwd" /><br />
+			<label for="newpwd2">'. _gettext('New password again') . ':</label>
+			<input type="password" name="newpwd2" /><br />
+			<input type="submit" value="' ._gettext('Change account password') . '" />
 		</form>';
 	}
 
@@ -363,12 +347,12 @@ class Manage {
 
 		}
 
-			if(!isset($_POST['templatedata']) && isset($_POST['template'])) {
+		if(!isset($_POST['templatedata']) && isset($_POST['template'])) {
 			$file = basename($_POST['template']);
 			if (in_array($file, $files)) {
 				if(file_exists(KU_TEMPLATEDIR . '/'. $file)) {
-								$tpl_page .= '<form method="post" action="?action=templates">
-          <input type="hidden" name="token" value="' . $_SESSION['token'] . '" />
+					$tpl_page .= '<form method="post" action="?action=templates">
+					<input type="hidden" name="token" value="' . $_SESSION['token'] . '" />
 					<input type="hidden" name="template" value="'. $file .'" />
 					<textarea wrap=off rows=40 cols=100 name="templatedata">'. htmlspecialchars(file_get_contents(KU_TEMPLATEDIR . '/'. $file)) . '</textarea>
 					<br /><br />
@@ -377,7 +361,7 @@ class Manage {
 					<div class="desc">'. _gettext('Enclose text in {t}{/t} blocks to allow them to be translated for different languages.') . '</div><br /><br />';
 				}
 			}
-				}
+		}
 
 		$tpl_page .= '<input type="submit" value="' ._gettext('Edit') . '" /></form>';
 	}
@@ -613,7 +597,7 @@ class Manage {
 		<legend>'. _gettext('Information') . '</legend>
 		<label for="ip">'. _gettext('IP') . ':</label>
 		<input type="text" name="ip" id="ip" value="'. $ban_ip . '" /><br/>
-		
+
 		<label for="seconds">'. _gettext('Seconds') . ':</label>
 		<input type="text" name="seconds" id="seconds" />
 		<div class="desc">'. _gettext('Presets') . ':&nbsp;<a href="#" onclick="document.banform.seconds.value=\'3600\';return false;">1hr</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'86400\';return false;">1d</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'259200\';return false;">3d</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'604800\';return false;">1w</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'1209600\';return false;">2w</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'2592000\';return false;">30d</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'31536000\';return false;">1yr</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'0\';return false;">'. _gettext('never') .'</a></div><br />
@@ -745,7 +729,7 @@ class Manage {
 							else
 								$thumb = $this->findImageDir($line['parent']);
 
-							$tpl_page .= '[<a href='.KU_ARCHIVEPATH.'board/'.$linereport['board'].'/thumb/'.$thumb.'/'.$line['preview'].'>Thumb</a>]';						}
+							$tpl_page .= '[<a href='.KU_ARCHIVEPATH.'board/'.$linereport['board'].'/thumb/'.$thumb.'/'.$line['preview'].'>Thumb</a>]';
 						}
 						$tpl_page .= '</td><td>';
 
