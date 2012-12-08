@@ -691,15 +691,15 @@ class Manage {
 			if(count($reportinfo) > 0){
 				$postinfo = $tc_db->GetAll("SELECT HIGH_PRIORITY * FROM `".KU_FUUKADB."`.`".$reportinfo[0]['board']."` WHERE `num` = '".$reportinfo[0]['postid']."'");
 				$tc_db->Execute("UPDATE `" . KU_DBPREFIX . "reports` SET `cleared` ='1' WHERE `id` ='".intval($_GET['report'])."'");
-				
+
 				$logentry = 'Updated report ('.intval($_GET['report']).') - Deleted thumbnail';
-				
+
 				if($postinfo['parent'] == 0)
 					$thumb = $this->findImageDir($postinfo['num']);
 				else
 					$thumb = $this->findImageDir($postinfo['parent']);
 
-				@unlink(KU_IMAGEDIR.$tc_db->qstr($reportinfo[0]['board']).'/'.$thumb.'/'.$postinfo['preview']);	
+				unlink(KU_IMAGEDIR.$reportinfo[0]['board'].'/'.$thumb.'/'.$postinfo['preview']);
 
 				if($_GET['delete'] == "post"){
 					$tc_db->Execute("DELETE FROM `".KU_FUUKADB."`.`".$reportinfo[0]['board']."` WHERE `num` = '".$reportinfo[0]['postid']."'");
