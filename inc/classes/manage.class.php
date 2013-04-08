@@ -597,7 +597,7 @@ class Manage {
 		<legend>'. _gettext('Information') . '</legend>
 		<label for="ip">'. _gettext('IP') . ':</label>
 		<input type="text" name="ip" id="ip" value="'. $ban_ip . '" /><br/>
-
+		
 		<label for="seconds">'. _gettext('Seconds') . ':</label>
 		<input type="text" name="seconds" id="seconds" />
 		<div class="desc">'. _gettext('Presets') . ':&nbsp;<a href="#" onclick="document.banform.seconds.value=\'3600\';return false;">1hr</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'86400\';return false;">1d</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'259200\';return false;">3d</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'604800\';return false;">1w</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'1209600\';return false;">2w</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'2592000\';return false;">30d</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'31536000\';return false;">1yr</a>&nbsp;<a href="#" onclick="document.banform.seconds.value=\'0\';return false;">'. _gettext('never') .'</a></div><br />
@@ -691,15 +691,17 @@ class Manage {
 			if(count($reportinfo) > 0){
 				$postinfo = $tc_db->GetAll("SELECT HIGH_PRIORITY * FROM `".KU_FUUKADB."`.`".$reportinfo[0]['board']."` WHERE `num` = '".$reportinfo[0]['postid']."'");
 				$tc_db->Execute("UPDATE `" . KU_DBPREFIX . "reports` SET `cleared` ='1' WHERE `id` ='".intval($_GET['report'])."'");
-
+				
 				$logentry = 'Updated report ('.intval($_GET['report']).') - Deleted thumbnail';
+				
+				if($postinfo[0]['parent'] == 0){
+					$thumb = $this->findImageDir($postinfo[0]['num']);
+				}
+				else{
+					$thumb = $this->findImageDir($postinfo[0]['parent']);
+				}
 
-				if($postinfo['parent'] == 0)
-					$thumb = $this->findImageDir($postinfo['num']);
-				else
-					$thumb = $this->findImageDir($postinfo['parent']);
-
-				unlink(KU_IMAGEDIR.$reportinfo[0]['board'].'/'.$thumb.'/'.$postinfo['preview']);
+				unlink(KU_IMAGEDIR.$reportinfo[0]['board'].'/thumb/'.$thumb.'/'.$postinfo[0]['preview']);
 
 				if($_GET['delete'] == "post"){
 					$tc_db->Execute("DELETE FROM `".KU_FUUKADB."`.`".$reportinfo[0]['board']."` WHERE `num` = '".$reportinfo[0]['postid']."'");
@@ -763,5 +765,18 @@ class Manage {
 			$tpl_page .= 'No reports to show.';
 		}
 	}
+
+	function config() {
+		global $tc_db, $tpl_page;
+		$this->AdministratorsOnly();
+		$file_handle = fopen("../board-config.pl", "r");
+		while (!feof($file_handle)) {
+			$line[] .= fgets($file_handle);
+			//$tpl_page .= nl2br($line);
+		}
+		print_r($line);
+		fclose($file_handle);
+	}
+
 }
 ?>
